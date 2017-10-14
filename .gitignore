@@ -60,6 +60,9 @@ target/
 # Pycharm IDE
 .idea/
 
+# VSCode IDE conf
+.vscode/
+
 # virtualenv
 venv/
 
