@@ -4,7 +4,7 @@
 import os
 from datetime import datetime
 from flask import Flask, render_template, session, redirect, url_for, flash
-from flask_script import Manager
+from flask_script import Manager, Shell
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_wtf import FlaskForm
@@ -82,6 +82,14 @@ def page_not_found(e):
 def internal_server_error(e):
     return render_template('500.html'), 500
 
+
+def make_shell_context():
+    """shell context to auto import modules in shell environ"""
+    return dict(app=app, db=db, User=User, Role=Role)
+
+
+# context imported automatically by shell make_contex
+manager.add_command('shell', Shell(make_context=make_shell_context))
 
 if __name__ == '__main__':
     db.create_all()
