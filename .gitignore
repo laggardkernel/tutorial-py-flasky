@@ -68,3 +68,4 @@ venv/
 
 # sqlite database
 *.sqlite3
+*.sqlite

@@ -11,8 +11,10 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate, MigrateCommand
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'hard to guess string'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(base_dir,
@@ -23,8 +25,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 manager = Manager(app)
 bootstrap = Bootstrap(app)
 moment = Moment(app)
-
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 
 # ORM models
@@ -55,6 +57,17 @@ class NameForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
+def make_shell_context():
+    """shell context to auto import modules in shell environ"""
+    return dict(app=app, db=db, User=User, Role=Role)
+
+
+# context imported automatically by shell make_contex
+manager.add_command('shell', Shell(make_context=make_shell_context))
+# integrate db command into Flask-Script
+manager.add_command('db', MigrateCommand)
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = NameForm()
@@ -83,15 +96,6 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 
-def make_shell_context():
-    """shell context to auto import modules in shell environ"""
-    return dict(app=app, db=db, User=User, Role=Role)
-
-
-# context imported automatically by shell make_contex
-manager.add_command('shell', Shell(make_context=make_shell_context))
-
 if __name__ == '__main__':
-    db.create_all()
     # app.run(debug=True)
     manager.run()
