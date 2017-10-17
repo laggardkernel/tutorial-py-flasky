@@ -3,6 +3,7 @@
 
 import os
 from datetime import datetime
+from threading import Thread
 from flask import Flask, render_template, session, redirect, url_for, flash
 from flask_script import Manager, Shell
 from flask_bootstrap import Bootstrap
@@ -81,12 +82,19 @@ manager.add_command('shell', Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
 
+def send_async_mail(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+
 def send_mail(to, subject, template, **kw):
     msg = Message(app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + subject,
         sender=app.config['FLASK_MAIL_SENDER'], recipients=[to])
     msg.body = render_template(template + '.txt', **kw)
     msg.html = render_template(template + '.html', **kw)
-    mail.send(msg)
+    thr = Thread(target=send_async_mail, args=[app, msg])
+    thr.start()
+    return thr
 
 
 @app.route('/', methods=['GET', 'POST'])
