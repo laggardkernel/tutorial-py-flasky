@@ -12,6 +12,7 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate, MigrateCommand
+from flask_mail import Mail, Message
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
@@ -22,11 +23,23 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(base_dir,
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+app.config['MAIL_SERVER'] = 'smtp.qq.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+# custom config for mail message
+app.config['FLASKY_MAIL_SUBJECT_PREFIX'] = '[Flasky]'
+app.config['FLASK_MAIL_SENDER'] = 'Flasky Admin <%s>' % os.environ.get(
+    'MAIL_USERNAME')
+app.config['FLASKY_ADMIN'] = os.environ.get('FLASKY_ADMIN')  # admin email addr
+
 manager = Manager(app)
 bootstrap = Bootstrap(app)
 moment = Moment(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+mail = Mail(app)
 
 
 # ORM models
@@ -68,6 +81,14 @@ manager.add_command('shell', Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
 
+def send_mail(to, subject, template, **kw):
+    msg = Message(app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + subject,
+        sender=app.config['FLASK_MAIL_SENDER'], recipients=[to])
+    msg.body = render_template(template + '.txt', **kw)
+    msg.html = render_template(template + '.html', **kw)
+    mail.send(msg)
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = NameForm()
@@ -77,6 +98,9 @@ def index():
             user = User(username=form.name.data)
             db.session.add(user)
             session['known'] = False
+            if app.config['FLASKY_ADMIN']:
+                send_mail(app.config['FLASKY_ADMIN'], 'New User',
+                    'mail/new_user', user=user)
         else:
             session['known'] = True
         session['name'] = form.name.data
