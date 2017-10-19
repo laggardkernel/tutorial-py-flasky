@@ -34,6 +34,14 @@
         <ul class="nav navbar-nav">
           <li><a href="/">Home</a></li>
         </ul>
+        <ul class="nav navbar-nav navbar-right">
+          {# current_user from Flask-Login. global for views and templates #}
+          {% if current_user.is_authenticated %}
+            <li><a href="{{ url_for('auth.logout') }}">Sign Out</a></li>
+          {% else %}
+            <li><a href="{{ url_for('auth.login') }}">Sign In</a></li>
+          {% endif %}
+        </ul>
       </div>
     </div>
   </div>
