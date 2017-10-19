@@ -15,7 +15,7 @@ moment = Moment()
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
-login_manager.login_view = 'auth.login'  # route for login
+login_manager.login_view = 'auth.login'  # in case that @login_required is used
 
 
 def create_app(config_name):
