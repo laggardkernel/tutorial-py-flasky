@@ -28,5 +28,12 @@
 
     <p>Member since {{ moment(user.member_since).format('L') }}.
       Last Seen {{ moment(user.last_seen).fromNow() }}.</p>
+    <p>
+      {% if user==current_user %}
+        <a class="btn btn-default" href="{{ url_for('main.edit_profile') }}">
+          Edit Profile
+        </a>
+      {% endif %}
+    </p>
   </div>
 {% endblock %}
