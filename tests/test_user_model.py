@@ -3,11 +3,24 @@
 
 import unittest
 import time
-from app import db
-from app.models import User
+from app import create_app, db
+from app.models import User, Role, Permission, AnonymousUser
 
 
 class UserModleTestCase(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app('testing')
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        db.create_all()
+        # insert basic role into roles table
+        Role.insert_roles()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+
     def test_password_setter(self):
         u = User(password='cat')
         self.assertTrue(u.password_hash is not None)
@@ -96,3 +109,12 @@ class UserModleTestCase(unittest.TestCase):
         token = u2.generate_email_change_token('john@example.com')
         self.assertFalse(u2.change_email(token))
         self.assertTrue(u2.email == 'susan@example.org')
+
+    def test_roles_and_permissions(self):
+        u = User(email='john@example.com', password='cat')
+        self.assertTrue(u.can(Permission.WRITE_ARTICLES))
+        self.assertFalse(u.can(Permission.MODERATE_COMMENTS))
+
+    def test_anonymous_user(self):
+        u = AnonymousUser()
+        self.assertFalse(u.can(Permission.FOLLOW))
