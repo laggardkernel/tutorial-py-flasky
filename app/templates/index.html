@@ -4,6 +4,11 @@
 
 {% block title %}Flasky{% endblock %}
 
+{% block scripts %}
+  {{ super() }}
+  {{ pagedown.include_pagedown() }}
+{% endblock %}
+
 {% block page_content %}
   <div class="page-header">
     <h1>
