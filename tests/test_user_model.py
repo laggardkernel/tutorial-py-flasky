@@ -139,3 +139,7 @@ class UserModleTestCase(unittest.TestCase):
         last_seen_before = u.last_seen
         u.ping()
         self.assertTrue(u.last_seen > last_seen_before)
+
+
+if __name__ == '__main__':
+    unittest.main()

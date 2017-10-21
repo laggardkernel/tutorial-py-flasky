@@ -49,6 +49,8 @@ def edit_profile_admin(id):
     if form.validate_on_submit():
         user.email = form.email.data
         user.username = form.username.data
+        if form.password.data:
+            user.password = form.password.data
         user.confirmed = form.confirmed.data
         # Note: overwrite user.role but not user.role_id(just a foreign key)
         user.role = Role.query.get(form.role.data)

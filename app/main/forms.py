@@ -2,9 +2,9 @@
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, BooleanField, \
-    SelectField
+    SelectField, PasswordField
 from wtforms.validators import DataRequired, Length, Email, Regexp, \
-    ValidationError
+    ValidationError, EqualTo
 from ..models import User, Role
 
 
@@ -31,6 +31,9 @@ class EditProfileAdminForm(FlaskForm):
             DataRequired(), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
                 'Usernames must have only letters, numbers, dots or underscores')])
     # TODO: change user's password by admin
+    password = PasswordField('New Password (leave empty to be untouched)',
+        validators=[EqualTo('password2', message='Passwords must match!')])
+    password2 = PasswordField('Confirm password')
     confirmed = BooleanField('Confirmed')
     # select list, coerce transform query results(string) into int value
     role = SelectField('Role', coerce=int)  # role_id value
