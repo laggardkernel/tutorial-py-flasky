@@ -2,7 +2,7 @@
 
 import hashlib
 from flask import render_template, flash, redirect, url_for, request, \
-    current_app
+    current_app, abort
 from flask_login import login_required, current_user
 
 from . import main  # the bluepring
@@ -100,3 +100,20 @@ def post(id):
     post = Post.query.get_or_404(id)
     # posts param as a list since the need of template _posts.html
     return render_template('post.html', posts=[post])
+
+
+@main.route('/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit(id):
+    post = Post.query.get_or_404(id)
+    if current_user != post.author \
+            and not current_user.can(Permission.ADMINISTER):
+        abort(403)
+    form = PostForm()
+    if form.validate_on_submit():
+        post.body = form.body.data
+        db.session.add(post)
+        flash('The post has been updated.')
+        return redirect(url_for('main.post', id=post.id))
+    form.body.data = post.body
+    return render_template('edit_post.html', form=form)
