@@ -96,6 +96,8 @@ class User(UserMixin, db.Model):
         backref=db.backref('followed', lazy='joined'), lazy='dynamic',
         cascade='all,delete-orphan')
 
+    comments = db.relationship('Comment', backref='author', lazy='dynamic')
+
     @staticmethod
     def generate_fake(count=100):
         """forge some fake users, number of users is count"""
@@ -285,6 +287,8 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
+    comments = db.relationship('Comment', backref='post', lazy='dynamic')
+
     @staticmethod
     def generate_fake(count=100):
         """random forge fake posts for random users"""
@@ -315,3 +319,56 @@ class Post(db.Model):
 
 # execute Post.on_change_body() func once new value is set for Post.body
 db.event.listen(Post.body, 'set', Post.on_changed_body)
+
+
+class Comment(db.Model):
+    __tablename__ = 'comments'
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    disabled = db.Column(db.Boolean, default=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+
+    @staticmethod
+    def generate_fake(post='', count=200):
+        from random import seed, randint
+        import forgery_py
+
+        seed()
+        user_count = User.query.count()
+        post_count = Post.query.count()
+        if user_count and post_count:
+            if post is not None and post in Post.query.all():
+                for i in range(count):
+                    u = User.query.offset(randint(0, user_count) - 1).first()
+                    c = Comment(
+                        body=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
+                        timestamp=forgery_py.date.date(True),
+                        author=u, post=post)
+                    db.session.add(c)
+                    db.session.commit()
+            else:
+                for i in range(count):
+                    u = User.query.offset(randint(0, user_count) - 1).first()
+                    p = Post.query.offset(randint(0, post_count) - 1).first()
+                    c = Comment(
+                        body=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
+                        timestamp=forgery_py.date.date(True), author=u, post=p)
+                    db.session.add(c)
+                    db.session.commit()
+        else:
+            print("No available user or post. Generate them first.")
+
+    @staticmethod
+    def on_changed_body(target, value, oldvalue, initiator):
+        """markdown text --> html"""
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'code', 'em', 'i',
+            'strong']
+        target.body_html = bleach.linkify(bleach.clean(
+            markdown(value, output_format='html'), tags=allowed_tags,
+            strip=True))
+
+
+db.event.listen(Comment.body, 'set', Comment.on_changed_body)
