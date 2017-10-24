@@ -96,6 +96,41 @@ class User(UserMixin, db.Model):
         backref=db.backref('followed', lazy='joined'), lazy='dynamic',
         cascade='all,delete-orphan')
 
+    @staticmethod
+    def generate_fake(count=100):
+        """forge some fake users, number of users is count"""
+        from sqlalchemy.exc import IntegrityError
+        from random import seed
+        import forgery_py
+
+        seed()
+        for i in range(count):
+            u = User(email=forgery_py.internet.email_address(),
+                username=forgery_py.internet.user_name(True),
+                password=forgery_py.lorem_ipsum.word(),
+                confirmed=True,
+                name=forgery_py.name.full_name(),
+                location=forgery_py.address.city(),
+                about_me=forgery_py.lorem_ipsum.sentence(),
+                member_since=forgery_py.date.date(True))
+            db.session.add(u)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+    @staticmethod
+    def add_self_follows():
+        """
+        create new func to upgrade db: follow oneself
+        Note: watch out the side-effect on count and pagination
+        """
+        for user in User.query.all():
+            if not user.is_following(user):
+                user.follow(user)
+                db.session.add(user)
+                db.session.commit()
+
     def __init__(self, **kw):
         super(User, self).__init__(**kw)
         if self.role is None:
@@ -106,6 +141,8 @@ class User(UserMixin, db.Model):
         if self.email is not None and self.avatar_hash is None:
             self.avatar_hash = hashlib.md5(
                 self.email.encode('utf-8')).hexdigest()
+        # follow oneself
+        self.followed.append(Follow(followed=self))
 
     @property
     def password(self):
@@ -195,29 +232,6 @@ class User(UserMixin, db.Model):
             self.email.encode('utf-8')).hexdigest()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(url=url,
             hash=hash, size=size, default=default, rating=rating)
-
-    @staticmethod
-    def generate_fake(count=100):
-        """forge some fake users, number of users is count"""
-        from sqlalchemy.exc import IntegrityError
-        from random import seed
-        import forgery_py
-
-        seed()
-        for i in range(count):
-            u = User(email=forgery_py.internet.email_address(),
-                username=forgery_py.internet.user_name(True),
-                password=forgery_py.lorem_ipsum.word(),
-                confirmed=True,
-                name=forgery_py.name.full_name(),
-                location=forgery_py.address.city(),
-                about_me=forgery_py.lorem_ipsum.sentence(),
-                member_since=forgery_py.date.date(True))
-            db.session.add(u)
-            try:
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
 
     def is_following(self, user):
         return self.followed.filter_by(followed_id=user.id).first() is not None
