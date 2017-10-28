@@ -43,7 +43,7 @@ class UserModleTestCase(unittest.TestCase):
 
     def test_valid_confirmation_token(self):
         u = User(password='cat')
-        db.sesson.add(u)
+        db.session.add(u)
         db.session.commit()
         token = u.generate_confirmation_token()
         self.assertTrue(u.confirm(token))
@@ -67,7 +67,7 @@ class UserModleTestCase(unittest.TestCase):
 
     def test_valid_reset_token(self):
         u = User(password='cat')
-        db.sesion.add(u)
+        db.session.add(u)
         db.session.commit()
         token = u.generate_reset_token()
         self.assertTrue(u.reset_password(token, 'dog'))

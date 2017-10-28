@@ -228,7 +228,7 @@ class User(UserMixin, db.Model):
 
     def gravatar(self, size=100, default='identicon', rating='g'):
         if request.is_secure:
-            url = 'http://secure.gravatar.com/avatar'
+            url = 'https://secure.gravatar.com/avatar'
         else:
             url = 'http://www.gravatar.com/avatar'
         hash = self.avatar_hash or hashlib.md5(
