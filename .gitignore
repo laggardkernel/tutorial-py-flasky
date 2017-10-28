@@ -69,3 +69,6 @@ venv/
 # sqlite database
 *.sqlite3
 *.sqlite
+
+# temporary files
+tmp/
