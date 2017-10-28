@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#  -*- coding: utf-8 -*-
 
 import unittest
 from flask import current_app
@@ -23,7 +23,3 @@ class BasicTestCase(unittest.TestCase):
 
     def test_app_is_testing(self):
         self.assertTrue(current_app.config['TESTING'])
-
-
-if __name__ == '__main__':
-    unittest.main()

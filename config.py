@@ -44,6 +44,8 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
                               'sqlite:///' + os.path.join(base_dir,
                                   'data-test.sqlite')
+    # disable csrf protection during test to avoid extraction of token
+    WTF_CSRF_ENABLED = False
 
 
 class ProductionConfig(Config):

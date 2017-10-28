@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#  -*- coding: utf-8 -*-
 # Created by laggard on 10/18/17
 
 import unittest
@@ -204,7 +204,3 @@ class UserModleTestCase(unittest.TestCase):
             'posts', 'followed_posts', 'post_count']
         self.assertTrue(sorted(json_user.keys()), sorted(expected_keys))
         self.assertTrue('api/v1.0/users/' in json_user['url'])
-
-
-if __name__ == '__main__':
-    unittest.main()
