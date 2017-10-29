@@ -65,11 +65,11 @@
                   <a href="{{ url_for('auth.change_email_request') }}">Change
                     Email</a>
                 </li>
-                <li><a href="{{ url_for('auth.logout') }}">Sign Out</a></li>
+                <li><a href="{{ url_for('auth.logout') }}">Log Out</a></li>
               </ul>
             </li>
           {% else %}
-            <li><a href="{{ url_for('auth.login') }}">Sign In</a></li>
+            <li><a href="{{ url_for('auth.login') }}">Log In</a></li>
           {% endif %}
         </ul>
       </div>
