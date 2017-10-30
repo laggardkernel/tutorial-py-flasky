@@ -33,6 +33,11 @@ def create_app(config_name):
     login_manager.init_app(app)
     pagedown.init_app(app)
 
+    if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
+        # use SSL only under Production
+        from flask_sslify import SSLify
+        sslify = SSLify(app)
+
     # additional routes and custom error pages.
     # The problem here is app has not be created until this func(create_app) is
     # called. We can't use @app.route() since there is no scope of the app.

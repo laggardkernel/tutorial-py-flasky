@@ -72,3 +72,6 @@ venv/
 
 # temporary files
 tmp/
+
+# config for foreman|heroku local from Heroku Toolbelt
+.env

@@ -29,6 +29,8 @@ class Config:
     FLASKY_COMMENTS_PER_PAGE = 30
     FLASKY_SLOW_DB_QUERY_TIME = 0.5
 
+    SSL_DISABLE = True
+
     @staticmethod
     def init_app(app):
         pass
@@ -51,7 +53,7 @@ class TestingConfig(Config):
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
                               'sqlite:///' + os.path.join(base_dir,
                                   'data.sqlite')
 
@@ -80,10 +82,31 @@ class ProductionConfig(Config):
         app.logger.addHandler(mail_handler)
 
 
+class HerokuConfig(ProductionConfig):
+    SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
+
+    @classmethod
+    def init_app(cls, app):
+        ProductionConfig.init_app(app)
+
+        # handler server header, fix reverse proxy where connect between
+        # reverse proxy and server is not secure.
+        from werkzeug.contrib.fixers import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app)
+
+        # log into stderr
+        import logging
+        from logging import StreamHandler
+        file_handler = StreamHandler()
+        file_handler.setLevel(logging.WARNING)
+        app.logger.addHandler(file_handler)
+
+
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
+    'heroku': HerokuConfig,
 
     'default': DevelopmentConfig
 }
