@@ -104,7 +104,7 @@ div.comment-thumbnail {
 
 div.comment-content {
     margin-left: 48px; /* considering the left 40px size thumbnail of user */
-    min-height: 48px;
+    min-height: 40px;  /* the same size with thumbnail */
 }
 
 div.pagination {

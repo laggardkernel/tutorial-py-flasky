@@ -18,12 +18,7 @@ def unauthorized(message):
     response.status_code = 401
     return response
 
-
-def forbidden(message):
-    response = jsonify({'error': 'forbidden', 'message': message})
-    response.status_code = 403
-    return response
-
+# forbidden is defined in main.errors
 
 @api.errorhandler(ValidationError)  # only for routes from api blueprint
 def validation_error(e):

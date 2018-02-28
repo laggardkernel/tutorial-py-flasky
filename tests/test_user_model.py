@@ -202,5 +202,5 @@ class UserModleTestCase(unittest.TestCase):
         json_user = u.to_json()
         expected_keys = ['url', 'usename', 'member_since', 'last_seen',
             'posts', 'followed_posts', 'post_count']
-        self.assertTrue(sorted(json_user.keys()), sorted(expected_keys))
+        self.assertEqual(sorted(json_user.keys()), sorted(expected_keys))
         self.assertTrue('api/v1.0/users/' in json_user['url'])

@@ -71,7 +71,7 @@ def user(username):
         error_out=False)
     posts = pagination.items
     return render_template('user.html', user=user, posts=posts,
-        pagination=pagination)
+        endpoint="main.user", pagination=pagination)
 
 
 @main.route('/edit-profile', methods=['GET', 'POST'])
@@ -239,7 +239,7 @@ def followed_by(username):
 
 # set show_followed control flag cookie
 @main.route('/all')
-@login_required
+# @login_required, available to anonymous as well
 def show_all():
     """set show all posts flag before jump to index page"""
     resp = make_response(redirect(url_for('main.index')))
