@@ -78,7 +78,7 @@ class ProductionConfig(Config):
             credentials=credentials,
             secure=secure)
         mail_handler.setLevel(logging.ERROR)
-        # app.logger is not created auto in production, but only in debug mode
+        # add logger for production mode
         app.logger.addHandler(mail_handler)
 
 

@@ -276,9 +276,9 @@ class User(UserMixin, db.Model):
         json_user = {
             'url': url_for('api.get_user', id=self.id, _external=True),
             'username': self.username,
-            # 'name': self.name,
-            # 'location': self.location,
-            # 'about_me': self.about_me,
+            'name': self.name,
+            'location': self.location,
+            'about_me': self.about_me,
             'member_since': self.member_since,
             'last_seen': self.last_seen,
             'posts': url_for('api.get_user_posts', id=self.id, _external=True),

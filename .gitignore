@@ -65,6 +65,9 @@ target/
 
 # virtualenv
 venv/
+# pyenv-virtualenv
+.python-version
+.pyenv-version
 
 # sqlite database
 *.sqlite3

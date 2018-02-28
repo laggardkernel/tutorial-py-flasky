@@ -70,6 +70,6 @@
   <h3>Posts by {{ user.username }}</h3>
   {% include '_posts.html' %}
   <div class="pagination">
-    {{ macros.pagination_widget(pagination,'main.index') }}
+    {{ macros.pagination_widget(pagination, endpoint, username=user.username) }}
   </div>
 {% endblock %}
