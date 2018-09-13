@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import base64
 from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 
@@ -7,6 +8,7 @@ from . import auth
 from .. import db
 from ..models import User
 from ..email import send_email
+from ..main.errors import page_not_found
 from .forms import (
     LoginForm,
     RegistrationForm,
@@ -149,15 +151,23 @@ def password_reset_request():
     return render_template("auth/reset_password.html", form=form)
 
 
-# TODO: set email field uneditible filled with reset email address already
+# DONE: set email field uneditible filled with reset email address already
+# impossible, cause email info is not embeded in the token
 @auth.route("/reset/<token>", methods=["GET", "POST"])
 def password_reset(token):
     if not current_user.is_anonymous:
         flash("Logout first before resetting your password.")
         return redirect(url_for("main.index"))
+
+    try:
+        email, token = base64.b64decode(token).decode("utf-8").split(":")
+    except:
+        return page_not_found(e="invalid token")
+
     form = PasswordResetForm()
+    form.email.data = email
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter_by(email=email).first()
         # email existence is validated by the form already
         if user.reset_password(token, form.password.data):  #
             # db.session.commit is executed by the class method above

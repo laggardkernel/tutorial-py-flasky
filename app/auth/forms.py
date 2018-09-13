@@ -72,7 +72,12 @@ class PasswordResetRequestForm(FlaskForm):
 
 
 class PasswordResetForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Length(1, 64), Email()])
+    # email data is got from token
+    email = StringField(
+        "Email",
+        validators=[DataRequired(), Length(1, 64), Email()],
+        render_kw={"readonly": True},
+    )
     password = PasswordField(
         "New password",
         validators=[

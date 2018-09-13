@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import hashlib
+import base64
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -190,7 +191,10 @@ class User(UserMixin, db.Model):
 
     def generate_reset_token(self, expiration=3600):
         s = Serializer(current_app.config["SECRET_KEY"], expires_in=expiration)
-        return s.dumps({"reset": self.id})
+        r = s.dumps({"reset": self.id}).decode("utf-8")
+        r = self.email + ":" + r
+        r = base64.b64encode(r.encode("utf-8")).decode("utf-8")
+        return r
 
     def reset_password(self, token, new_password):
         s = Serializer(current_app.config["SECRET_KEY"])
