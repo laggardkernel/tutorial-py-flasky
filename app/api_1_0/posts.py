@@ -3,7 +3,7 @@
 from flask import g, request, jsonify, url_for, current_app
 from . import api
 from .decorators import permission_required
-from ..main.errors import forbidden
+from .errors import forbidden
 from ..models import Comment, Post, Permission
 from .. import db
 

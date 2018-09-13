@@ -3,8 +3,7 @@
 from flask import g, jsonify
 from flask_httpauth import HTTPBasicAuth
 from ..models import User, AnonymousUser
-from ..main.errors import forbidden
-from .errors import unauthorized
+from .errors import unauthorized, forbidden
 from . import api
 
 # since only used in api blueprint, namely in /api/version/*
