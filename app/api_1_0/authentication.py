@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Created by laggard on 10/25/17
 
 from flask import g, jsonify
 from flask_httpauth import HTTPBasicAuth
@@ -16,10 +15,10 @@ auth = HTTPBasicAuth()
 @auth.verify_password
 def verify_password(email_or_token, password):
     """save authorized user in app context g"""
-    if email_or_token == '':
+    if email_or_token == "":
         g.current_user = AnonymousUser()  # app context during each request
         return True
-    elif password == '':
+    elif password == "":
         g.current_user = User.verify_auth_token(email_or_token)
         g.token_used = True
         return g.current_user is not None
@@ -41,15 +40,18 @@ def auth_error():
 @api.before_request
 @auth.login_required
 def before_request():
-    if not g.current_user.is_anonymous and \
-            not g.current_user.confirmed:
-        return forbidden('Unconfirmed account')
+    if not g.current_user.is_anonymous and not g.current_user.confirmed:
+        return forbidden("Unconfirmed account")
 
 
-@api.route('/token')
+@api.route("/token")
 def get_token():
     # to avoid token generation with an old token
     if g.current_user.is_anonymous or g.token_used:
-        return unauthorized('Invalid credentials')
-    return jsonify({'token': g.current_user.generate_auth_token(
-        expiration=3600), 'expiration': 3600})
+        return unauthorized("Invalid credentials")
+    return jsonify(
+        {
+            "token": g.current_user.generate_auth_token(expiration=3600),
+            "expiration": 3600,
+        }
+    )

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Created by laggard on 10/20/17
 
 from functools import wraps
 from flask import abort

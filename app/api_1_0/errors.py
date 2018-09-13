@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Created by laggard on 10/25/17
 
 from flask import jsonify
 
@@ -8,17 +7,19 @@ from ..exceptions import ValidationError
 
 
 def bad_request(message):
-    response = jsonify({'error': 'bad request', 'message': message})
+    response = jsonify({"error": "bad request", "message": message})
     response.status_code = 400
     return response
 
 
 def unauthorized(message):
-    response = jsonify({'error': 'unauthorized', 'message': message})
+    response = jsonify({"error": "unauthorized", "message": message})
     response.status_code = 401
     return response
 
+
 # forbidden is defined in main.errors
+
 
 @api.errorhandler(ValidationError)  # only for routes from api blueprint
 def validation_error(e):

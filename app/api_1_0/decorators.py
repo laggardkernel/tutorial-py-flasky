@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Created by laggard on 10/25/17
 
 from functools import wraps
 from flask import g
@@ -13,7 +12,7 @@ def permission_required(permission):
         @wraps(f)
         def decorator_function(*args, **kwargs):
             if not g.current_user.can(permission):
-                return forbidden('Insufficient permissions')
+                return forbidden("Insufficient permissions")
             else:
                 return f(*args, **kwargs)
 

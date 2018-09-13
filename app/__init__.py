@@ -15,8 +15,8 @@ mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
 login_manager = LoginManager()
-login_manager.session_protection = 'strong'
-login_manager.login_view = 'auth.login'  # in case that @login_required is used
+login_manager.session_protection = "strong"
+login_manager.login_view = "auth.login"  # in case that @login_required is used
 pagedown = PageDown()  # markdown preview when typing
 
 
@@ -33,9 +33,10 @@ def create_app(config_name):
     login_manager.init_app(app)
     pagedown.init_app(app)
 
-    if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
+    if not app.debug and not app.testing and not app.config["SSL_DISABLE"]:
         # use SSL only under Production
         from flask_sslify import SSLify
+
         sslify = SSLify(app)
 
     # additional routes and custom error pages.
@@ -43,12 +44,15 @@ def create_app(config_name):
     # called. We can't use @app.route() since there is no scope of the app.
     # So we use Blueprint to avoid the problem.
     from .main import main as main_blueprint
+
     app.register_blueprint(main_blueprint)
 
     from .auth import auth as auth_blueprint
-    app.register_blueprint(auth_blueprint, url_prefix='/auth')
+
+    app.register_blueprint(auth_blueprint, url_prefix="/auth")
 
     from .api_1_0 import api as api_1_0_blueprint
-    app.register_blueprint(api_1_0_blueprint, url_prefix='/api/v1.0')
+
+    app.register_blueprint(api_1_0_blueprint, url_prefix="/api/v1.0")
 
     return app
