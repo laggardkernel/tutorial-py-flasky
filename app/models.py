@@ -225,7 +225,6 @@ class User(UserMixin, db.Model):
         if User.query.filter_by(email=new_email).first() is not None:
             return False
         self.email = new_email
-        self.avatar_hash = hashlib.md5(self.email.encode("utf-8")).hexdigest()
         db.session.add(self)
         return True
 
@@ -291,6 +290,11 @@ class User(UserMixin, db.Model):
             return None
         return User.query.get_or_404(data["id"])
 
+    @staticmethod
+    def on_changed_email(target, value, oldvalue, initiator):
+        """Update avatar_hash once email is changed"""
+        target.avatar_hash = hashlib.md5(value.encode("utf-8")).hexdigest()
+
     def to_json(self):
         json_user = {
             "url": url_for("api.get_user", id=self.id, _external=True),
@@ -310,6 +314,9 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return "<User %r>" % self.username
+
+
+db.event.listen(User.email, "set", User.on_changed_email)
 
 
 class AnonymousUser(AnonymousUserMixin):
