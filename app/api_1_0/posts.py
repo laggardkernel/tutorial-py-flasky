@@ -7,7 +7,7 @@ from ..main.errors import forbidden
 from ..models import Comment, Post, Permission
 from .. import db
 
-
+# TODO: add auth requirement, @auth.login_required
 @api.route("/posts/")
 def get_posts():
     page = request.args.get("page", 1, type=int)

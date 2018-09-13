@@ -175,7 +175,7 @@ class User(UserMixin, db.Model):
     def generate_confirmation_token(self, expiration=3600):
         """generate token from User.id"""
         s = Serializer(current_app.config["SECRET_KEY"], expires_in=expiration)
-        return s.dumps({"confirm": self.id})
+        return s.dumps({"confirm": self.id}).decode("utf-8")
 
     def confirm(self, token):
         s = Serializer(current_app.config["SECRET_KEY"])
@@ -210,7 +210,7 @@ class User(UserMixin, db.Model):
 
     def generate_email_change_token(self, new_email, expiration=3600):
         s = Serializer(current_app.config["SECRET_KEY"], expires_in=expiration)
-        return s.dumps({"change_email": self.id, "new_email": new_email})
+        return s.dumps({"change_email": self.id, "new_email": new_email}).decode("utf-8")
 
     def change_email(self, token):
         s = Serializer(current_app.config["SECRET_KEY"])
@@ -279,7 +279,7 @@ class User(UserMixin, db.Model):
     def generate_auth_token(self, expiration):
         """temp auth token to avoid sensitive password auth at each request"""
         s = Serializer(current_app.config["SECRET_KEY"], expires_in=expiration)
-        return s.dumps({"id": self.id}).decode("ascii")
+        return s.dumps({"id": self.id}).decode("utf-8")
 
     @staticmethod
     def verify_auth_token(token):
