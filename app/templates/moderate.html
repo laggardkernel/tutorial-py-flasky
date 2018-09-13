@@ -11,7 +11,7 @@
   {% include '_comments.html' %}
   {% if pagination %}
     <div class="pagination">
-      {{ macros.pagination_widget(pagination,'.moderate') }}
+      {{ macros.pagination_widget(pagination,endpoint) }}
     </div>
   {% endif %}
 {% endblock %}

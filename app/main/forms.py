@@ -21,12 +21,6 @@ from flask_pagedown.fields import PageDownField
 from ..models import User, Role
 
 
-# Form class for username input
-class NameForm(FlaskForm):
-    name = StringField("What is your name?", validators=[DataRequired()])
-    submit = SubmitField("Submit")
-
-
 class EditProfileForm(FlaskForm):
     """update current_user's profile: name, location and about_me"""
 
@@ -52,7 +46,7 @@ class EditProfileAdminForm(FlaskForm):
             ),
         ],
     )
-    # TODO: change user's password by admin
+    # DONE: change user's password by admin
     password = PasswordField(
         "New Password (leave empty to be untouched)",
         validators=[EqualTo("password2", message="Passwords must match!")],

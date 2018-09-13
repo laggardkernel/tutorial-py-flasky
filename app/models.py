@@ -131,6 +131,7 @@ class User(UserMixin, db.Model):
                 member_since=forgery_py.date.date(True),
             )
             db.session.add(u)
+            # use try...except... cause user must be unique
             try:
                 db.session.commit()
             except IntegrityError:

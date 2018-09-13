@@ -14,13 +14,13 @@ from flask import (
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 
-from . import main  # the bluepring
+from . import main  # the blueprint
 from .. import db
 from ..models import User, Role, Permission, Post, Comment
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from ..decorators import permission_required, admin_required
 
-
+# TODO: define hook func conditionally
 @main.after_app_request
 def after_request(response):
     for query in get_debug_queries():
@@ -68,6 +68,7 @@ def index():
         form=form,
         posts=posts,
         show_followed=show_followed,
+        endpoint="main.index",
         pagination=pagination,
     )
 
@@ -82,7 +83,7 @@ def user(username):
     )
     posts = pagination.items
     return render_template(
-        "user.html", user=user, posts=posts, endpoint="main.user", pagination=pagination
+        "user.html", user=user, posts=posts, pagination=pagination, endpoint="main.user"
     )
 
 
@@ -112,8 +113,8 @@ def edit_profile_admin(id):
     form = EditProfileAdminForm(user=user)
     if form.validate_on_submit():
         user.email = form.email.data
-        # don't forget to update avatar_hash once email updated
-        user.avatar_hash = hashlib.md5(form.email.data.encode("utf-8")).hexdigest()
+        # avatar_hash is updated automatically by db event listener
+        # user.avatar_hash = hashlib.md5(form.email.data.encode("utf-8")).hexdigest()
         user.username = form.username.data
         if form.password.data:
             user.password = form.password.data
@@ -160,7 +161,12 @@ def post(id):
     comments = pagination.items
     # posts param as a list since the need of template _posts.html
     return render_template(
-        "post.html", posts=[post], form=form, comments=comments, pagination=pagination
+        "post.html",
+        posts=[post],
+        form=form,
+        comments=comments,
+        pagination=pagination,
+        endpoint="main.post",
     )
 
 
@@ -297,7 +303,11 @@ def moderate():
     )
     comments = pagination.items
     return render_template(
-        "moderate.html", comments=comments, pagination=pagination, page=page
+        "moderate.html",
+        comments=comments,
+        pagination=pagination,
+        endpoint="main.moderate",
+        page=page,
     )
 
 
