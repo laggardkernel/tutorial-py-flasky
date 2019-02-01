@@ -134,25 +134,27 @@ def password_reset_request():
         return redirect(url_for("main.index"))
     form = PasswordResetRequestForm()
     if form.validate_on_submit():  # send email to user to reset password
-        user = User.query.filter_by(email=form.email.data).first()
-        # email existence is validated by the form already
-        token = user.generate_reset_token()
-        send_email(
-            user.email,
-            "Reset Your Password",
-            "auth/email/reset_password",
-            user=user,
-            token=token,
-        )
-        flash(
-            "An email with instructions to reset your password has been " "sent to you."
-        )
-        return redirect(url_for("auth.login"))
+        user = User.query.filter_by(email=form.email.data.lower()).first()
+        # check email existence in view but not in form to save db query once
+        if user:
+            token = user.generate_reset_token()
+            send_email(
+                user.email,
+                "Reset Your Password",
+                "auth/email/reset_password",
+                user=user,
+                token=token,
+            )
+            flash(
+                "An email with instructions to reset your password has been sent to you."
+            )
+            return redirect(url_for("auth.login"))
+        else:
+            flash("Invalid email address!")
     return render_template("auth/reset_password.html", form=form)
 
 
-# DONE: set email field uneditible filled with reset email address already
-# impossible, cause email info is not embeded in the token
+# DONE: set email field uneditible and fill it with reset email from token
 @auth.route("/reset/<token>", methods=["GET", "POST"])
 def password_reset(token):
     if not current_user.is_anonymous:
@@ -162,15 +164,16 @@ def password_reset(token):
     try:
         email, token = base64.b64decode(token).decode("utf-8").split(":")
     except:
+        # TODO: use err msg in err handler
         return page_not_found(e="invalid token")
 
     form = PasswordResetForm()
     form.email.data = email
     if form.validate_on_submit():
         user = User.query.filter_by(email=email).first()
-        # email existence is validated by the form already
-        if user.reset_password(token, form.password.data):  #
-            # db.session.commit is executed by the class method above
+        # validate email existence to save one time db query
+        if user and user.reset_password(token, form.password.data):
+            db.session.commit()
             flash("Your password has been updated.")
             return redirect(url_for("auth.login"))
         else:
