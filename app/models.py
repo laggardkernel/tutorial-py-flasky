@@ -129,32 +129,6 @@ class User(UserMixin, db.Model):
     comments = db.relationship("Comment", backref="author", lazy="dynamic")
 
     @staticmethod
-    def generate_fake(count=100):
-        """forge some fake users, number of users is count"""
-        from sqlalchemy.exc import IntegrityError
-        from random import seed
-        import forgery_py
-
-        seed()
-        for i in range(count):
-            u = User(
-                email=forgery_py.internet.email_address(),
-                username=forgery_py.internet.user_name(True),
-                password=forgery_py.lorem_ipsum.word(),
-                confirmed=True,
-                name=forgery_py.name.full_name(),
-                location=forgery_py.address.city(),
-                about_me=forgery_py.lorem_ipsum.sentence(),
-                member_since=forgery_py.date.date(True),
-            )
-            db.session.add(u)
-            # use try...except... cause user must be unique
-            try:
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
-
-    @staticmethod
     def add_self_follows():
         """
         create new func to upgrade db: follow oneself
@@ -365,25 +339,6 @@ class Post(db.Model):
     comments = db.relationship("Comment", backref="post", lazy="dynamic")
 
     @staticmethod
-    def generate_fake(count=100):
-        """random forge fake posts for random users"""
-        from random import seed, randint
-        import forgery_py
-
-        seed()
-        user_count = User.query.count()
-        for i in range(count):
-            # random select a user and forge a fake post
-            u = User.query.offset(randint(0, user_count - 1)).first()
-            p = Post(
-                body=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
-                timestamp=forgery_py.date.date(True),
-                author=u,
-            )
-            db.session.add(p)
-            db.session.commit()
-
-    @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
         """transform markdown text into html text and save it"""
         allowed_tags = [
@@ -447,41 +402,6 @@ class Comment(db.Model):
     disabled = db.Column(db.Boolean, default=False)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     post_id = db.Column(db.Integer, db.ForeignKey("posts.id"))
-
-    @staticmethod
-    def generate_fake(post="", count=200):
-        from random import seed, randint
-        import forgery_py
-
-        seed()
-        user_count = User.query.count()
-        post_count = Post.query.count()
-        if user_count and post_count:
-            if post is not None and post in Post.query.all():
-                for i in range(count):
-                    u = User.query.offset(randint(0, user_count) - 1).first()
-                    c = Comment(
-                        body=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
-                        timestamp=forgery_py.date.date(True),
-                        author=u,
-                        post=post,
-                    )
-                    db.session.add(c)
-                    db.session.commit()
-            else:
-                for i in range(count):
-                    u = User.query.offset(randint(0, user_count) - 1).first()
-                    p = Post.query.offset(randint(0, post_count) - 1).first()
-                    c = Comment(
-                        body=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
-                        timestamp=forgery_py.date.date(True),
-                        author=u,
-                        post=p,
-                    )
-                    db.session.add(c)
-                    db.session.commit()
-        else:
-            print("No available user or post. Generate them first.")
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):

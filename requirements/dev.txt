@@ -1,6 +1,6 @@
 -r common.txt
 coverage==4.5.3
-ForgeryPy==0.1
+Faker==1.0.7
 flask-shell-ipython==0.4.1
 httpie==1.0.2
 selenium==3.141.0
