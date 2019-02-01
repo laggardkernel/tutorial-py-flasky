@@ -31,6 +31,13 @@ def get_posts():
     )
 
 
+@api.route("/posts/<int:id>")
+def get_post(id):
+    # 404 error handler should be compatible with json format
+    post = Post.query.get_or_404(id)
+    return jsonify(post.to_json())
+
+
 @api.route("/posts/", methods=["POST"])
 @permission_required(Permission.WRITE)
 def new_post():
@@ -48,13 +55,6 @@ def new_post():
     )
 
 
-@api.route("/posts/<int:id>")
-def get_post(id):
-    # 404 error handler should be compatible with json format
-    post = Post.query.get_or_404(id)
-    return jsonify(post.to_json())
-
-
 # update existing post with PUT, namely store message entity-body on the server
 @api.route("/posts/<int:id>", methods=["PUT"])
 @permission_required(Permission.WRITE)
@@ -65,44 +65,5 @@ def edit_post(id):
     else:
         post.body = request.json.get("body", post.body)
         db.session.add(post)  # body_html will be updated automatically
+        db.session.commit()
         return jsonify(post.to_json())
-
-
-@api.route("/posts/<int:id>/comments/")
-def get_post_comments(id):
-    post = Post.query.get_or_404(id)
-    page = request.args.get("page", 1, type=int)
-    pagination = post.comments.order_by(Comment.timestamp.asc()).paginate(
-        page, per_page=current_app.config["FLASKY_COMMENTS_PER_PAGE"], error_out=False
-    )
-    comments = pagination.items
-    prev = None
-    if pagination.has_prev:
-        prev = url_for("api.get_post_comments", id=id, page=page - 1, _external=True)
-    next = None
-    if pagination.has_next:
-        next = url_for("api.get_post_comments", id=id, page=page + 1, _external=True)
-    return jsonify(
-        {
-            "comments": [comment.to_json() for comment in comments],
-            "prev": prev,
-            "next": next,
-            "count": pagination.total,
-        }
-    )
-
-
-@api.route("/posts/<int:id>/comments/", methods=["POST"])
-@permission_required(Permission.COMMENT)
-def new_post_comment(id):
-    post = Post.query.get_or_404(id)
-    comment = Comment.from_json(request.json)
-    comment.author = g.current_user
-    comment.post = post
-    db.session.add(comment)
-    db.session.commit()
-    return (
-        jsonify(comment.to_json()),
-        201,
-        {"Location": url_for("api.get_comment", id=comment.id, _external=True)},
-    )

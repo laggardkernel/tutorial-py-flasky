@@ -43,7 +43,7 @@ def before_request():
         return forbidden("Unconfirmed account")
 
 
-@api.route("/token")
+@api.route("/tokens/", methods=["POST"])
 def get_token():
     # to avoid token generation with an old token
     if g.current_user.is_anonymous or g.token_used:

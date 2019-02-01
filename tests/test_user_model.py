@@ -220,10 +220,11 @@ class UserModleTestCase(unittest.TestCase):
         u = User(email="john@example.com", password="cat")
         db.session.add(u)
         db.session.commit()
-        json_user = u.to_json()
+        with self.app.test_request_context("/"):
+            json_user = u.to_json()
         expected_keys = [
             "url",
-            "usename",
+            "username",
             "member_since",
             "last_seen",
             "posts",
@@ -231,4 +232,4 @@ class UserModleTestCase(unittest.TestCase):
             "post_count",
         ]
         self.assertEqual(sorted(json_user.keys()), sorted(expected_keys))
-        self.assertTrue("api/v1.0/users/" in json_user["url"])
+        self.assertTrue("/api/v1.0/users/" in json_user["url"])

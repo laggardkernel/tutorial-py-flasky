@@ -1,4 +1,4 @@
-# Flask Web Development (1st edition)
+# Flask Web Development (2st edition)
 
 Personal prectice of the book. Get source code of the book [here](https://github.com/miguelgrinberg/flasky).
 
@@ -9,3 +9,4 @@ Personal prectice of the book. Get source code of the book [here](https://github
 - [ ] revoke used token (e.g. use a dummy id and change the id once token is used)
 - [ ] remove invalid `ValidationError`?
 - [x] permission addition and subtraction for `Role` 
+- [ ] why `_external=True` not be used for `url_for()` in the 2nd edition?
