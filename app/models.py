@@ -173,8 +173,10 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(permissions=0xFF).first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
+
         if self.email is not None and self.avatar_hash is None:
-            self.avatar_hash = hashlib.md5(self.email.encode("utf-8")).hexdigest()
+            self.avatar_hash = self.gravatar_hash()
+
         # follow oneself
         self.followed.append(Follow(followed=self))
 
@@ -258,12 +260,12 @@ class User(UserMixin, db.Model):
         self.last_seen = datetime.utcnow()
         db.session.add(self)
 
+    def gravatar_hash(self):
+        return hashlib.md5(self.email.lower().encode("utf-8")).hexdigest()
+
     def gravatar(self, size=100, default="identicon", rating="g"):
-        if request.is_secure:
-            url = "https://secure.gravatar.com/avatar"
-        else:
-            url = "http://www.gravatar.com/avatar"
-        hash = self.avatar_hash or hashlib.md5(self.email.encode("utf-8")).hexdigest()
+        url = "https://secure.gravatar.com/avatar"
+        hash = self.avatar_hash or self.gravatar_hash()
         return "{url}/{hash}?s={size}&d={default}&r={rating}".format(
             url=url, hash=hash, size=size, default=default, rating=rating
         )
@@ -308,7 +310,7 @@ class User(UserMixin, db.Model):
     @staticmethod
     def on_changed_email(target, value, oldvalue, initiator):
         """Update avatar_hash once email is changed"""
-        target.avatar_hash = hashlib.md5(value.encode("utf-8")).hexdigest()
+        target.avatar_hash = hashlib.md5(value.lower().encode("utf-8")).hexdigest()
 
     def to_json(self):
         json_user = {
