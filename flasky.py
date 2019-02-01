@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import click
 
 COV = None
 if os.environ.get("FLASK_COVERAGE"):
@@ -10,23 +11,16 @@ if os.environ.get("FLASK_COVERAGE"):
     COV = coverage.coverage(branch=True, include="app/*")
     COV.start()
 
-if os.path.exists(".env"):
-    print("Importing environment from .env...")
-    for line in open(".env"):
-        var = line.strip().split("=")
-        if len(var) == 2:
-            os.environ[var[0]] = var[1]
-
 from app import create_app, db
 from app.models import User, Follow, Role, Permission, Post, Comment
-from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 
 app = create_app(os.getenv("FLASK_CONFIG") or "default")
-manager = Manager(app)
+# init Migrate, and the db subcommand is integrated into flask automatically
 migrate = Migrate(app, db)
 
 
+@app.shell_context_processor
 def make_shell_context():
     """shell context to auto import modules in shell environ"""
     return dict(
@@ -41,25 +35,23 @@ def make_shell_context():
     )
 
 
-# context imported automatically by shell make_contex
-manager.add_command("shell", Shell(make_context=make_shell_context))
-# integrate db command into Flask-Script
-manager.add_command("db", MigrateCommand)
-
-
-# custom manager command for manager shell
-@manager.command
-def test(coverage=False):
+@app.cli.command()
+@click.argument("test_names", nargs=-1)
+def test(test_names="", coverage=False):
     """Run the unit tests."""
     if coverage and not os.environ.get("FLASK_COVERAGE"):
         import sys
 
         os.environ["FLASK_COVERAGE"] = "1"
         os.execvp(sys.executable, [sys.executable] + sys.argv)
+
     import unittest
 
-    # load test methods from the directory tests
-    tests = unittest.TestLoader().discover("tests")
+    if test_names:
+        tests = unittest.Tes().loadTestsFromNames(test_names)
+    else:
+        # load test methods from the directory tests
+        tests = unittest.TestLoader().discover("tests")
     unittest.TextTestRunner(verbosity=2).run(tests)
     if COV:
         import shutil
@@ -76,10 +68,12 @@ def test(coverage=False):
         COV.erase()
 
 
-@manager.command
-def profile(length=25, profile_dir=None):
+@app.cli.command()
+@click.option("--length", default=25, help="Profile stack length")
+@click.option("--profile-dir", default=None, help="Profile directory")
+def profile(length, profile_dir):
     """start the app under the code profiler."""
-    from werkzeug.contrib.profiler import ProfilerMiddleware
+    from werkzeug.middleware.profiler import ProfilerMiddleware
 
     app.wsgi_app = ProfilerMiddleware(
         app.wsgi_app, restrictions=[length], profile_dir=profile_dir
@@ -87,7 +81,7 @@ def profile(length=25, profile_dir=None):
     app.run()
 
 
-@manager.command
+@app.cli.command()
 def deploy():
     """Run deployment tasks."""
     from flask_migrate import upgrade
@@ -101,7 +95,3 @@ def deploy():
 
     # create self-follows for all users
     User.add_self_follows()
-
-
-if __name__ == "__main__":
-    manager.run()
