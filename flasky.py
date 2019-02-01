@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import click
 
 COV = None
 if os.environ.get("FLASK_COVERAGE"):
@@ -11,6 +10,7 @@ if os.environ.get("FLASK_COVERAGE"):
     COV = coverage.coverage(branch=True, include="app/*")
     COV.start()
 
+import click
 from app import create_app, db
 from app.models import User, Follow, Role, Permission, Post, Comment
 from flask_migrate import Migrate, MigrateCommand
@@ -36,14 +36,19 @@ def make_shell_context():
 
 
 @app.cli.command()
+@click.option(
+    "--coverage/--no-coverage", default=False, help="Run tests under code coverage."
+)
 @click.argument("test_names", nargs=-1)
-def test(test_names="", coverage=False):
+def test(coverage, test_names):
     """Run the unit tests."""
     if coverage and not os.environ.get("FLASK_COVERAGE"):
         import sys
+        import subprocess
 
         os.environ["FLASK_COVERAGE"] = "1"
-        os.execvp(sys.executable, [sys.executable] + sys.argv)
+        # os.execvp(sys.executable, [sys.executable] + sys.argv)
+        sys.exit(subprocess.call(sys.argv))
 
     import unittest
 
