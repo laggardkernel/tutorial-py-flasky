@@ -46,7 +46,7 @@ def server_shutdown():
 @main.route("/", methods=["GET", "POST"])
 def index():
     form = PostForm()
-    if current_user.can(Permission.WRITE_ARTICLES) and form.validate_on_submit():
+    if current_user.can(Permission.WRITE) and form.validate_on_submit():
         post = Post(body=form.body.data, author=current_user._get_current_object())
         db.session.add(post)
         return redirect(url_for("main.index"))
@@ -174,7 +174,7 @@ def post(id):
 @login_required
 def edit(id):
     post = Post.query.get_or_404(id)
-    if current_user != post.author and not current_user.can(Permission.ADMINISTER):
+    if current_user != post.author and not current_user.can(Permission.ADMIN):
         abort(403)
     form = PostForm()
     if form.validate_on_submit():
@@ -295,7 +295,7 @@ def show_followed():
 
 @main.route("/moderate")
 @login_required
-@permission_required(Permission.MODERATE_COMMENTS)
+@permission_required(Permission.MODERATE)
 def moderate():
     page = request.args.get("page", 1, type=int)
     pagination = Comment.query.order_by(Comment.timestamp.desc()).paginate(
@@ -313,7 +313,7 @@ def moderate():
 
 @main.route("/moderate/<int:id>")
 @login_required
-@permission_required(Permission.MODERATE_COMMENTS)
+@permission_required(Permission.MODERATE)
 def moderate_flip(id):
     comment = Comment.query.get_or_404(id)
     comment.disabled = not comment.disabled

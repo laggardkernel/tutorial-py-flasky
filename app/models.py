@@ -16,9 +16,9 @@ from .exceptions import ValidationError
 class Permission:
     FOLLOW = 0x01
     COMMENT = 0x02
-    WRITE_ARTICLES = 0x04
-    MODERATE_COMMENTS = 0x08
-    ADMINISTER = 0x80  # website management
+    WRITE = 0x04
+    MODERATE = 0x08
+    ADMIN = 0x80  # 128
 
 
 # ORM models
@@ -29,35 +29,52 @@ class Role(db.Model):
     # default role for all created users
     default = db.Column(db.Boolean, default=False, index=True)
     permissions = db.Column(db.Integer)
+
     # backref adds role property into User class
     users = db.relationship("User", backref="role", lazy="dynamic")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.permissions is None:
+            self.permissions = 0
 
     @staticmethod
     def insert_roles():
         """Add role instances into roles table of database"""
         roles = {
-            "User": (
-                Permission.FOLLOW | Permission.COMMENT | Permission.WRITE_ARTICLES,
-                True,
-            ),
+            "User": (Permission.FOLLOW | Permission.COMMENT | Permission.WRITE,),
             "Moderator": (
                 Permission.FOLLOW
                 | Permission.COMMENT
-                | Permission.WRITE_ARTICLES
-                | Permission.MODERATE_COMMENTS,
-                False,
+                | Permission.WRITE
+                | Permission.MODERATE,
             ),
             # all permissions include future ones for admin
-            "Administrator": (0xFF, False),
+            "Administrator": (0xFF,),
         }
+        default_role = "User"
         for r in roles.keys():
             role = Role.query.filter_by(name=r).first()
             if role is None:
                 role = Role(name=r)
             role.permissions = roles[r][0]
-            role.default = roles[r][1]
+            role.default = role.name == default_role
             db.session.add(role)
         db.session.commit()
+
+    def add_permission(self, perm):
+        if not self.has_permission(perm):
+            self.permissions += perm
+
+    def remove_permission(self, perm):
+        if self.has_permission(perm):
+            self.permissions -= perm
+
+    def reset_permission(self):
+        self.permissions = 0
+
+    def has_permission(self, perm):
+        return self.permissions & perm == perm
 
     def __repr__(self):
         return "<Role %r>" % self.name
@@ -229,15 +246,12 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         return True
 
-    def can(self, permissions):
+    def can(self, perm):
         """verify user's permissions"""
-        return (
-            self.role is not None
-            and (self.role.permissions & permissions) == permissions
-        )
+        return self.role is not None and self.role.has_permission(perm)
 
     def is_administrator(self):
-        return self.can(Permission.ADMINISTER)
+        return self.can(Permission.ADMIN)
 
     def ping(self):
         """update last_seen date"""

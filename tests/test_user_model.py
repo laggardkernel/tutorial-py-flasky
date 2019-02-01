@@ -110,14 +110,39 @@ class UserModleTestCase(unittest.TestCase):
         self.assertFalse(u2.change_email(token))
         self.assertTrue(u2.email == "susan@example.org")
 
-    def test_roles_and_permissions(self):
+    def test_user_role(self):
         u = User(email="john@example.com", password="cat")
-        self.assertTrue(u.can(Permission.WRITE_ARTICLES))
-        self.assertFalse(u.can(Permission.MODERATE_COMMENTS))
+        self.assertTrue(u.can(Permission.FOLLOW))
+        self.assertTrue(u.can(Permission.COMMENT))
+        self.assertTrue(u.can(Permission.WRITE))
+        self.assertFalse(u.can(Permission.MODERATE))
+        self.assertFalse(u.can(Permission.ADMIN))
+
+    def test_moderate_role(self):
+        r = Role.query.filter_by(name="Moderate").first()
+        u = User(email="john@example.com", password="cat", role=r)
+        self.assertTrue(u.can(Permission.FOLLOW))
+        self.assertTrue(u.can(Permission.COMMENT))
+        self.assertTrue(u.can(Permission.WRITE))
+        self.assertTrue(u.can(Permission.MODERATE))
+        self.assertFalse(u.can(Permission.ADMIN))
+
+    def test_administrator_role(self):
+        r = Role.query.filter_by(name="Administrator").first()
+        u = User(email="john@example.com", password="cat", role=r)
+        self.assertTrue(u.can(Permission.FOLLOW))
+        self.assertTrue(u.can(Permission.COMMENT))
+        self.assertTrue(u.can(Permission.WRITE))
+        self.assertTrue(u.can(Permission.MODERATE))
+        self.assertTrue(u.can(Permission.ADMIN))
 
     def test_anonymous_user(self):
         u = AnonymousUser()
         self.assertFalse(u.can(Permission.FOLLOW))
+        self.assertFalse(u.can(Permission.COMMENT))
+        self.assertFalse(u.can(Permission.WRITE))
+        self.assertFalse(u.can(Permission.MODERATE))
+        self.assertFalse(u.can(Permission.ADMIN))
 
     def test_timestamps(self):
         """test effectiveness of User.menber_since and User.last_seen"""

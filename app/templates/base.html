@@ -45,7 +45,7 @@
         </ul>
         <ul class="nav navbar-nav navbar-right">
           {# current_user from Flask-Login. global for views and templates #}
-          {% if current_user.can(Permission.MODERATE_COMMENTS) %}
+          {% if current_user.can(Permission.MODERATE) %}
             <li>
               <a href="{{ url_for('main.moderate') }}">Moderate Comments</a>
             </li>
