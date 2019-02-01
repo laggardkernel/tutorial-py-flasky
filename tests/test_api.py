@@ -38,7 +38,7 @@ class APITestCase(unittest.TestCase):
             "/wrong/url", headers=self.get_api_headers("email", "password")
         )
         self.assertTrue(response.status_code == 404)
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         self.assertTrue(json_response["error"] == "not found")
 
     def test_no_auth(self):
@@ -82,7 +82,7 @@ class APITestCase(unittest.TestCase):
             headers=self.get_api_headers("john@example.com", "cat"),
         )
         self.assertTrue(response.status_code == 200)
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         self.assertIsNotNone(json_response.get("token"))
         token = json_response["token"]
 
@@ -145,7 +145,7 @@ class APITestCase(unittest.TestCase):
         )
         self.assertTrue(response.status_code == 200)
         # decode entity-body and get the json data
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         self.assertTrue(json_response["url"] == url)
         self.assertTrue(json_response["body"] == "body of the *blog* post")
         self.assertTrue(
@@ -159,7 +159,7 @@ class APITestCase(unittest.TestCase):
             headers=self.get_api_headers("john@example.com", "cat"),
         )
         self.assertTrue(response.status_code == 200)
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         self.assertIsNotNone(json_response.get("posts"))
         self.assertTrue(json_response.get("count", 0) == 1)
         self.assertTrue(json_response["posts"][0] == json_post)
@@ -170,7 +170,7 @@ class APITestCase(unittest.TestCase):
             headers=self.get_api_headers("john@example.com", "cat"),
         )
         self.assertTrue(response.status_code == 200)
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         self.assertIsNotNone(json_response.get("posts"))
         self.assertTrue(json_response.get("count", 0) == 1)
         self.assertTrue(json_response["posts"][0] == json_post)
@@ -182,7 +182,7 @@ class APITestCase(unittest.TestCase):
             data=json.dumps({"body": "updated body"}),
         )
         self.assertTrue(response.status_code == 200)
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         self.assertTrue(json_response["url"] == url)
         self.assertTrue(json_response["body"] == "updated body")
         self.assertTrue(json_response["body_html"] == "<p>updated body</p>")
@@ -214,14 +214,14 @@ class APITestCase(unittest.TestCase):
             headers=self.get_api_headers("susan@example.com", "dog"),
         )
         self.assertTrue(response.status_code == 200)
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         self.assertTrue(json_response["username"] == "john")
         response = self.client.get(
             url_for("api.get_user", id=u2.id),
             headers=self.get_api_headers("susan@example.com", "dog"),
         )
         self.assertTrue(response.status_code == 200)
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         self.assertTrue(json_response["username"] == "susan")
 
     def test_comments(self):
@@ -249,7 +249,7 @@ class APITestCase(unittest.TestCase):
             data=json.dumps({"body": "Good [post](http://example.com)!"}),
         )
         self.assertTrue(response.status_code == 201)
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         url = response.headers.get("Location")
         self.assertIsNotNone(url)
         self.assertTrue(json_response["body"] == "Good [post](http://example.com)!")
@@ -260,7 +260,7 @@ class APITestCase(unittest.TestCase):
             url, headers=self.get_api_headers("john@example.com", "cat")
         )
         self.assertTrue(response.status_code == 200)
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         self.assertTrue(json_response["url"] == url)
         self.assertTrue(json_response["body"] == "Good [post](http://example.com)!")
 
@@ -275,7 +275,7 @@ class APITestCase(unittest.TestCase):
             headers=self.get_api_headers("susan@example.com", "dog"),
         )
         self.assertTrue(response.status_code == 200)
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         self.assertIsNotNone(json_response.get("comments"))
         self.assertTrue(json_response.get("count", 0) == 2)
 
@@ -285,6 +285,6 @@ class APITestCase(unittest.TestCase):
             headers=self.get_api_headers("susan@example.com", "dog"),
         )
         self.assertTrue(response.status_code == 200)
-        json_response = json.loads(response.data.decode("utf-8"))
+        json_response = json.loads(response.get_data(as_text=True))
         self.assertIsNotNone(json_response.get("comments"))
         self.assertTrue(json_response.get("count", 0) == 2)

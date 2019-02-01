@@ -24,6 +24,7 @@ class FlaskClientTestCase(unittest.TestCase):
 
     def test_home_page(self):
         response = self.client.get(url_for("main.index"))
+        self.assertEqual(response.status_code, 200)
         # default response.data|response.get_data() is binary string,
         # use response.get_data(as_text=True) to convert it into unicode string
         self.assertTrue("Stranger" in response.get_data(as_text=True))
@@ -47,6 +48,7 @@ class FlaskClientTestCase(unittest.TestCase):
             data={"email": "john@example.com", "password": "cat"},
             follow_redirects=True,
         )
+        self.assertEqual(response.status_code, 200)
         data = response.get_data(as_text=True)
         self.assertTrue(re.search("Hello,\s+john!", data))
         self.assertTrue("You have not confirmed you account yet" in data)
@@ -57,10 +59,14 @@ class FlaskClientTestCase(unittest.TestCase):
         response = self.client.get(
             url_for("auth.confirm", token=token), follow_redirects=True
         )
+        user.confirm(token)
+        db.session.commit()
+        self.assertEqual(response.status_code, 200)
         data = response.get_data(as_text=True)
         self.assertTrue("You have confirmed your account" in data)
 
         # logout
         response = self.client.get(url_for("auth.logout"), follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
         data = response.get_data(as_text=True)
         self.assertTrue("You have been logged out" in data)

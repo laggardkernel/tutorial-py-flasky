@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import unittest
-from selenium import webdriver
+import re
 import threading
 import time
-import re
+import unittest
+from selenium import webdriver
 from app import create_app, db
 from app.models import Role, User, Post
 
@@ -15,8 +15,10 @@ class SeleniumTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # launcher browser
+        options = webdriver.ChromeOptions()
+        options.add_argument("--headless")
         try:
-            cls.client = webdriver.Chrome()
+            cls.client = webdriver.Chrome(chrome_options=options)
         except:
             pass
 
@@ -40,7 +42,7 @@ class SeleniumTestCase(unittest.TestCase):
             Post.generate_fake(10)
 
             # add an admin
-            admin_role = Role.query.filter_by(permissions=0xFF).first()
+            admin_role = Role.query.filter_by(name="Administrator").first()
             admin = User(
                 email="john@example.com",
                 username="john",
@@ -52,16 +54,24 @@ class SeleniumTestCase(unittest.TestCase):
             db.session.commit()
 
             # start Flask server in a thread
-            threading.Thread(target=cls.app.run).start()
+            cls.server_thread = threading.Thread(target=cls.app.run)
+            cls.server_thread.start()
+            # give the server 1s to ensure it's up
             time.sleep(1)
 
     @classmethod
     def tearDownClass(cls):
         if cls.client:
+            # stop browser and the flask server
             cls.client.get("http://localhost:5000/shutdown")
-            cls.client.close()
+            cls.client.quit()
+            cls.server_thread.join()
+
+            # destroy database
             db.drop_all()
             db.session.remove()
+
+            # remove app context
             cls.app_context.pop()
 
     def setUp(self):
