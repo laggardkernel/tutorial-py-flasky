@@ -1,11 +1,5 @@
 -r common.txt
-certifi==2017.7.27.1
-chardet==3.0.4
-coverage==4.4.1
+coverage==4.5.3
 ForgeryPy==0.1
-httpie==0.9.9
-idna==2.6
-Pygments==2.2.0
-requests==2.18.4
-selenium==3.6.0
-urllib3==1.22
+httpie==1.0.2
+selenium==3.141.0
