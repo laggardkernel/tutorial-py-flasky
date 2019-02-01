@@ -192,21 +192,20 @@ class User(UserMixin, db.Model):
 
     def generate_reset_token(self, expiration=3600):
         s = Serializer(current_app.config["SECRET_KEY"], expires_in=expiration)
-        r = s.dumps({"reset": self.id}).decode("utf-8")
-        r = self.email + ":" + r
-        r = base64.b64encode(r.encode("utf-8")).decode("utf-8")
-        return r
+        return s.dumps({"reset": self.id}).decode("utf-8")
 
-    def reset_password(self, token, new_password):
+    @staticmethod
+    def reset_password(token, new_password):
         s = Serializer(current_app.config["SECRET_KEY"])
         try:
             data = s.loads(token)
         except:
             return False
-        if data.get("reset") != self.id:
+        user = User.query.get(data.get("reset"))
+        if user is None:
             return False
-        self.password = new_password
-        db.session.add(self)
+        user.password = new_password
+        db.session.add(user)
         return True
 
     def generate_email_change_token(self, new_email, expiration=3600):

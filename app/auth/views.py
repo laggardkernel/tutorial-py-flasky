@@ -151,26 +151,18 @@ def password_reset_request():
     return render_template("auth/reset_password.html", form=form)
 
 
-# DONE: set email field uneditible filled with reset email address already
-# impossible, cause email info is not embeded in the token
+# TODO: check token/url validity in GET
 @auth.route("/reset/<token>", methods=["GET", "POST"])
 def password_reset(token):
     if not current_user.is_anonymous:
         flash("Logout first before resetting your password.")
         return redirect(url_for("main.index"))
 
-    try:
-        email, token = base64.b64decode(token).decode("utf-8").split(":")
-    except:
-        return page_not_found(e="invalid token")
-
     form = PasswordResetForm()
-    form.email.data = email
     if form.validate_on_submit():
-        user = User.query.filter_by(email=email).first()
-        # email existence is validated by the form already
-        if user.reset_password(token, form.password.data):  #
-            # db.session.commit is executed by the class method above
+        # User identity is embeded in token already
+        if User.reset_password(token, form.password.data):  #
+            db.session.commit()
             flash("Your password has been updated.")
             return redirect(url_for("auth.login"))
         else:
