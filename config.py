@@ -131,7 +131,7 @@ class UnixConfig(ProductionConfig):
         from logging.handlers import SysLogHandler
 
         syslog_handler = SysLogHandler()
-        syslog_handler.setLevel(logging.WARNING)
+        syslog_handler.setLevel(logging.INFO)
         app.logger.addHandler(syslog_handler)
 
 
