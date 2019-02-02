@@ -407,5 +407,6 @@ dmypy.json
 # temporary files
 tmp/
 
-# env file for direnv
+# env files
 .envrc
+.env-mysql
