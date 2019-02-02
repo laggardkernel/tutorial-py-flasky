@@ -30,7 +30,7 @@ class Config:
     FLASKY_FOLLOWERS_PER_PAGE = 50
     FLASKY_COMMENTS_PER_PAGE = 30
 
-    SSL_DISABLE = True
+    SSL_REDIRECT = False
 
     @staticmethod
     def init_app(app):
@@ -86,7 +86,7 @@ class ProductionConfig(Config):
 
 
 class HerokuConfig(ProductionConfig):
-    SSL_DISABLE = bool(os.environ.get("SSL_DISABLE"))
+    SSL_REDIRECT = True if os.environ.get("DYNO") else False
 
     @classmethod
     def init_app(cls, app):
@@ -103,7 +103,8 @@ class HerokuConfig(ProductionConfig):
         from logging import StreamHandler
 
         file_handler = StreamHandler()
-        file_handler.setLevel(logging.WARNING)
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
         app.logger.addHandler(file_handler)
 
 
