@@ -144,7 +144,7 @@ class User(UserMixin, db.Model):
         super(User, self).__init__(**kw)
         if self.role is None:
             if self.email == current_app.config["FLASKY_ADMIN"]:
-                self.role = Role.query.filter_by(permissions=0xFF).first()
+                self.role = Role.query.filter_by(name="Administrator").first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
 
@@ -152,7 +152,7 @@ class User(UserMixin, db.Model):
             self.avatar_hash = self.gravatar_hash()
 
         # follow oneself
-        self.followed.append(Follow(followed=self))
+        self.follow(self)
 
     @property
     def password(self):
@@ -180,7 +180,7 @@ class User(UserMixin, db.Model):
         if data.get("confirm") != self.id:
             return False
         self.confirmed = True
-        db.session.add(self)  # update database
+        db.session.add(self)  # update database manually later
         return True
 
     def generate_reset_token(self, expiration=3600):
@@ -204,7 +204,9 @@ class User(UserMixin, db.Model):
 
     def generate_email_change_token(self, new_email, expiration=3600):
         s = Serializer(current_app.config["SECRET_KEY"], expires_in=expiration)
-        return s.dumps({"change_email": self.id, "new_email": new_email}).decode("utf-8")
+        return s.dumps({"change_email": self.id, "new_email": new_email}).decode(
+            "utf-8"
+        )
 
     def change_email(self, token):
         s = Serializer(current_app.config["SECRET_KEY"])
@@ -215,7 +217,9 @@ class User(UserMixin, db.Model):
         if data.get("change_email") != self.id:
             return False
         new_email = data.get("new_email")
-        # You'll never be too careful, right? Check the email address again.
+        # check the existence of email, you can never be too careful
+        if new_email is None:
+            return False
         if User.query.filter_by(email=new_email).first() is not None:
             return False
         self.email = new_email

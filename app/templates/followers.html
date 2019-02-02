@@ -19,7 +19,7 @@
         <tr>
           <td>
             <a href="{{ url_for('main.user',username=follow.user.username) }}">
-              <img class="img-rounded"
+              <img alt="avatar" class="img-rounded"
                    src="{{ follow.user.gravatar(size=32) }}">
               {{ follow.user.username }}
             </a>

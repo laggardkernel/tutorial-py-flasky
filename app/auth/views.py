@@ -44,10 +44,13 @@ def unconfirmed():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter_by(email=form.email.data.lower()).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
-            return redirect(request.args.get("next") or url_for("main.index"))
+            next = request.args.get("next")
+            if next is None or not next.startswith("/"):
+                next = url_for("main.index")
+            return redirect(next)
         flash("Invalid username or password!")
     return render_template("auth/login.html", form=form)
 
@@ -65,7 +68,7 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(
-            email=form.email.data,
+            email=form.email.data.lower(),
             username=form.username.data,
             password=form.password.data,
         )
@@ -90,6 +93,7 @@ def confirm(token):
     if current_user.confirmed:
         return redirect(url_for("main.index"))
     elif current_user.confirm(token):
+        db.session.commit()
         flash("You have confirmed your account. Thanks!")
     else:
         flash("The confirmation link is invalid or has expired!")
@@ -119,6 +123,7 @@ def change_password():
         if current_user.verify_password(form.old_password.data):
             current_user.password = form.password.data
             db.session.add(current_user)
+            db.session.commit()
             flash("Your password has been updated.")
             return redirect(url_for("main.index"))
         else:
@@ -189,7 +194,7 @@ def change_email_request():
     form = ChangeEmailRequestForm()
     if form.validate_on_submit():
         if current_user.verify_password(form.password.data):
-            new_email = form.email.data
+            new_email = form.email.data.lower()
             token = current_user.generate_email_change_token(new_email)
             send_email(
                 new_email,
@@ -212,6 +217,7 @@ def change_email_request():
 @login_required
 def change_email(token):
     if current_user.change_email(token):
+        db.session.commit()
         flash("You email address has been updated.")
     else:
         flash("Invalid request!")
