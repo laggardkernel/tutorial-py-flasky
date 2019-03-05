@@ -29,6 +29,26 @@ def user(count=100):
             i += 1
         except IntegrityError:
             db.session.rollback()
+    follow_user()
+
+
+def follow_user():
+    users = User.query.all()
+    user_count = len(users)
+    follow_number = min(user_count // 10, 10)
+    if follow_number > 0:
+        for follower in users:
+            i = 0
+            while i < follow_number:
+                followed = users[randint(0, user_count - 1)]
+                follower.follow(followed)
+                # use try...except cause user must be unique
+                try:
+                    db.session.commit()
+                    # increase count number only if commit succeeds
+                    i += 1
+                except IntegrityError:
+                    db.session.rollback()
 
 
 def post(count=100):
