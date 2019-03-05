@@ -50,7 +50,7 @@ def comment(post=None, count=200):
     else:
         if post is not None and post in Post.query.all():
             for i in range(count):
-                u = User.query.offset(randint(0, user_count) - 1).first()
+                u = User.query.offset(randint(0, user_count - 1)).first()
                 c = Comment(
                     body=fake.text(), timestamp=fake.past_data(), author=u, post=post
                 )
@@ -58,8 +58,8 @@ def comment(post=None, count=200):
             db.session.commit()
         else:
             for i in range(count):
-                u = User.query.offset(randint(0, user_count) - 1).first()
-                p = Post.query.offset(randint(0, post_count) - 1).first()
+                u = User.query.offset(randint(0, user_count - 1)).first()
+                p = Post.query.offset(randint(0, post_count - 1)).first()
                 c = Comment(
                     body=fake.text(), timestamp=fake.past_date(), author=u, post=p
                 )
