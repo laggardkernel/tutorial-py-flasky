@@ -3,11 +3,13 @@
 
 import os
 
-# from dotenv import load_dotenv
-#
-# dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
-# if os.path.exists(dotenv_path):
-#     load_dotenv(dotenv_path)
+from dotenv import load_dotenv
+
+# Load the .env file manually, cause flask instance run by gunicorn doesn't load it
+# Although the .env and .flaskenv files are loaded by "flask run" automatically.
+dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
 
 COV = None
 if os.environ.get("FLASK_COVERAGE"):
